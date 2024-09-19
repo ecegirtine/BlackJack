@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack</title>
+    <style>
+        body{
+            font-family: cursive;
+            text-align: center;
+        }
+        .cek{
+        background-color: rgb(186, 36, 36);
+        color: white;
+        font-family: cursive;
+        border: none;
+        border-radius: 12px;
+        cursor:pointer;
+        margin-right: 10px;
+        padding-top:20px;
+        padding-bottom: 20px;
+        padding-left: 16px;
+        padding-right: 16px;
+        vertical-align: top;
+        transition: opacity 0.2s;
+        }
+        .cek:hover{
+            opacity: 0.8;
+        }
+        .kal{
+        background-color: rgb(186, 36, 36);
+        color: white;
+        font-family: cursive;
+        border: none;
+        border-radius: 12px;
+        cursor:pointer;
+        padding-top:20px;
+        padding-bottom: 20px;
+        padding-left: 32px;
+        padding-right: 32px;
+        vertical-align: top;
+        transition: opacity 0.2s;
+        }
+        .kal:hover{
+            opacity: 0.8;
+        }
+        #dagitici-kartlari img{
+            width: 125px;
+            height: 175px;
+            margin: 1px;
+        }
+        #benim-kartlarim img{
+            width: 125px;
+            height: 175px;
+            margin: 1px;
+            margin-bottom: 30px;
+        }
+        .sonuc{
+            font-weight: bold;
+            font-size: 30px;
+        }
+
+    </style>
+</head>
+<body>
+    <h2>Dağıtıcı: <span id="dagitici-toplam"></span></h2>
+    <div id="dagitici-kartlari">
+        <img id="sakli" src="./kartlar/Saklı.png">
+
+    </div>
+
+    <h2>Ben: <span id="benim-toplam"></span></h2>
+    <div id="benim-kartlarim">
+        
+    </div>
+    
+    <div class="butonlar">
+        <button class="cek" id="cek">
+            Kart Çek
+        </button>
+        <button class="kal" id="kal">
+            Kal
+        </button>
+
+    </div>
+    <p class="sonuc" id="sonuc">Sonuç:</p>
+    
+
+    <script>
+        var dagiticiToplam=0;
+        var benimToplam=0;
+
+        var dagiticiAs=0;
+        var benimAs=0;
+
+        var sakliKart;
+        var deste;
+
+        var kartIste=true;
+
+        window.onload =function(){
+            desteOlustur();
+            desteKaristir();
+            oyunBaslangic();
+        }
+
+        function desteOlustur(){
+            let degerler=["2","3","4","5","6","7","8","9","10","As","Kız","Papaz"];
+            let tur=["Maça","Kupa","Karo","Sinek"];
+            deste=[];
+
+            for(let i=0;i<tur.length;i++){
+                for(let j=0;j<degerler.length;j++){
+                    deste.push(tur[i]+"-"+degerler[j]);
+                }
+                
+            }
+            
+        }
+
+        function desteKaristir(){
+            for(let i=0;i<deste.length;i++){
+                let j=Math.floor(Math.random()*deste.length);
+                let gecici=deste[i];
+                deste[i]=deste[j];
+                deste[j]=gecici;
+
+            }
+            console.log(deste);
+        }
+
+        function oyunBaslangic(){
+            sakliKart=deste.pop();
+            dagiticiToplam+=degeriniAl(sakliKart);
+            dagiticiAs+=kontrolAs(sakliKart);
+
+            let kartImg=document.createElement("img");
+            let kart=deste.pop();
+            kartImg.src="./kartlar/"+kart+".png";
+            dagiticiToplam+=degeriniAl(kart);
+            dagiticiAs+=kontrolAs(kart);
+            document.getElementById("dagitici-kartlari").append(kartImg);
+
+
+            for(let i=0;i<2;i++){
+                let kartImg=document.createElement("img");
+                let kart=deste.pop();
+                kartImg.src="./kartlar/"+kart+".png";
+                benimToplam+=degeriniAl(kart);
+                benimAs+=kontrolAs(kart);
+                document.getElementById("benim-kartlarim").append(kartImg);
+            }
+            console.log(benimToplam);
+            document.getElementById("cek").addEventListener("click",cek);
+            document.getElementById("kal").addEventListener("click",kal);
+        }
+
+        function cek(){
+            if(!kartIste){
+                return;
+            }
+            let kartImg=document.createElement("img");
+            let kart=deste.pop();
+            kartImg.src="./kartlar/"+kart+".png";
+            benimToplam+=degeriniAl(kart);
+            benimAs+=kontrolAs(kart);
+            document.getElementById("benim-kartlarim").append(kartImg);
+
+            if(asAzalt(benimToplam,benimAs)>21){
+                kartIste=false;
+
+            }
+            if(dagiticiToplam<21){
+                kartImg=document.createElement("img");
+                kart=deste.pop();
+                kartImg.src="./kartlar/"+kart+".png";
+                dagiticiToplam+=degeriniAl(kart);
+                dagiticiAs+=kontrolAs(kart);
+                document.getElementById("dagitici-kartlari").append(kartImg);
+            
+            }
+
+
+        }
+
+        function kal(){
+            dagiticiToplam=asAzalt(dagiticiToplam,dagiticiAs);
+            benimToplam=asAzalt(benimToplam,benimAs);
+
+            kartIste=false;
+            document.getElementById("sakli").src="./kartlar/"+sakliKart+".png";
+
+            let mesaj="";
+            if(benimToplam>21){
+                mesaj="Kaybettiniz!";
+            }
+            else if(dagiticiToplam>21){
+                mesaj="Kazandınız!";
+            }
+            else if(benimToplam==dagiticiToplam){
+                mesaj="Berabere!";
+            }
+            else if(benimToplam>dagiticiToplam){
+                mesaj="Kazandınız!"
+            }
+            else if(benimToplam<dagiticiToplam){
+                mesaj="Kaybettiniz!";
+            }
+            document.getElementById("benim-toplam").innerText=benimToplam;
+            document.getElementById("dagitici-toplam").innerText=dagiticiToplam;
+            document.getElementById("sonuc").innerText=mesaj;
+        }
+
+        function degeriniAl(kart){
+            let data = kart.split("-");
+            let deger = data[1];
+
+            if(isNaN(deger)){
+                if(deger=="As"){
+                    return 11;
+                }
+                return 10;
+            }
+
+            return parseInt(deger);
+        }
+
+        function kontrolAs(kart){
+
+            if(kart.split("-")[1]=="As"){
+                return 1;
+            }
+            return 0;
+        }
+
+        function asAzalt(oyuncuToplam,oyuncuAs){
+            while(oyuncuToplam>21 && oyuncuAs>0){
+                oyuncuToplam-=10;
+                oyuncuAs-=1;
+            }
+            return oyuncuToplam;
+        }
+
+    </script>
+</body>
+</html>
